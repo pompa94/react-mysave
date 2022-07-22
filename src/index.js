@@ -18,8 +18,36 @@ function App(){
   // state
   // 리스트 삭제후 다시 배열하기위한 스테이트
   const [appointList,setAppointList] = useState([])
+  // search 
+  // search에 값을 입력시 아이템 정렬을 바꿔주는 스테이트
+  const [query,setQuery] = useState('')
+  // search의 정리, 차순
+  const [sortBy,setSortBy] = useState('petName')
+  const [orderBy,setOrderBy] = useState('asc')
 
 
+
+  // 함수
+  // search 필터
+  // search의 input에 값이 들어가면 리스트 필터를 변경하여
+  // 새롭게 배열시켜주는 필터
+  // .sort()안에 orderBy,sortBy값으로 논리를 만들어준다
+  // .sort()가 끝나면 예약하기에 정보입력시 추가단계로 이동
+  const filterAppointments = appointList.filter(
+    (item)=>{return(
+      item.petName.toLowerCase().includes(query.toLowerCase()) ||
+      item.ownerName.toLowerCase().includes(query.toLowerCase()) ||
+      item.aptNotes.toLowerCase().includes(query.toLowerCase())
+    )}
+  ).sort(
+    (a,b)=>{
+      let order = (orderBy === 'asc' ? 1 : -1)
+      return(
+        a[sortBy].toLowerCase() < b[sortBy].toLowerCase()
+        ? -1 * order : 1 * order
+      )
+    }
+  )
 
 
   // useCallback
@@ -42,18 +70,45 @@ function App(){
         <BiArchive />
         예약시스템
         </h3>
+      
+      <AddAppointment 
+      // onSendAppointment를 받아와서 받아온값이름myAppointment를
+      // setAppointList중에 넣어준다
+      // 받아온 값은 리스트에 추가하는거임
+      onSendAppointment={
+        myAppointment => setAppointList(
+          [...appointList,myAppointment]
+        )
+      }
+      // lastId값을 만들고 reduce()해준다
+      // 이 값을 AddAppointment에 보내면 끝이다
+      // 끝.
+      lastId={
+        appointList.reduce((max,item)=>Number(item.id) > max ? Number(item.id) : max , 0)
+      }
+      />
 
-      <AddAppointment />
 
-
-      <Search />
+      <Search 
+      query={query}
+      onQueryChange={myQuery=>setQuery(myQuery)}
+      /* 스테이트 만든거 search로 보내고 드랍다운으로 다시보냄*/
+      orderBy={orderBy}
+      sortBy={sortBy}
+      /* onSortByChange onOrderByChange를 받아준다 */
+      /* 받아온 값을 함수로 set값에 넣어준다 */
+      /* 그리고 필터에 sort()안에 정리,차순의 논리를 만들어준다 */
+      onOrderByChange={myOrder=>setOrderBy(myOrder)}
+      onSortByChange={mySort=>setSortBy(mySort)}
+      />
 
       <div id='list'>
         <ul>
           {
             /* 반복문 */
             // AppointData.map(
-              appointList.map(
+              // appointList.map(
+                filterAppointments.map(
               (appointment)=>
               (<AddInfo
               key={appointment.id} 
